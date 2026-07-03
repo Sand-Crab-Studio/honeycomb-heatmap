@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>honeycomb-heatmap — demo</title>
+<link rel="stylesheet" href="../src/honeycomb.css">
+<style>
+  body { font: 15px/1.55 system-ui, sans-serif; max-width: 940px; margin: 2rem auto 4rem; padding: 0 1rem; color: #2c3e50; }
+  h1 { margin: 0 0 .1rem; font-size: 1.8rem; }
+  .lede { color: #6b7886; margin: 0 0 1.5rem; }
+  .panel { background: #faf7f2; border: 1px solid #e7ebf0; border-radius: 12px; padding: 1rem 1.1rem; margin: 1.4rem 0; }
+  .panel h3 { margin: 0 0 .6rem; font-size: 1rem; }
+  .controls { display: flex; flex-wrap: wrap; gap: .9rem 1.4rem; align-items: flex-end; }
+  .ctl { display: flex; flex-direction: column; gap: .25rem; font-size: .8rem; color: #6b7886; }
+  .ctl input[type=number] { width: 5.2rem; padding: .3rem; }
+  .ctl input[type=color] { width: 34px; height: 30px; padding: 0; border: 1px solid #d7ccbb; border-radius: 6px; background: none; }
+  .swatches { display: flex; gap: .4rem; }
+  button.mini { font: 600 .82rem system-ui; padding: .4rem .8rem; border: 1px solid #d7ccbb; background: #fff; border-radius: 7px; cursor: pointer; }
+  code { background: #f0ece4; padding: .1rem .35rem; border-radius: 4px; font-size: .9em; }
+  .hint { color: #6b7886; font-size: .88rem; }
+  a { color: #8a5524; }
+</style>
+</head>
+<body>
+  <h1>🍯 honeycomb-heatmap</h1>
+  <p class="lede">A zero-dependency activity / contribution heatmap — hexagon or square, themeable. Everything below is live; retune the bands and palette and watch it change.</p>
+
+  <div class="panel">
+    <h3>Tune it</h3>
+    <div class="controls">
+      <label class="ctl">Band 1 <span class="hint">(≤ → shade 1)</span><input type="number" id="b1" value="9" min="1"></label>
+      <label class="ctl">Band 2 <span class="hint">(≤ → shade 2)</span><input type="number" id="b2" value="24" min="1"></label>
+      <label class="ctl">Band 3 <span class="hint">(≤ → 3; above → peak)</span><input type="number" id="b3" value="44" min="1"></label>
+      <div class="ctl">Palette <span class="hint">(empty → peak)</span>
+        <div class="swatches">
+          <input type="color" id="c0" value="#ece4d6" title="empty">
+          <input type="color" id="c1" value="#e3cda2" title="shade 1">
+          <input type="color" id="c2" value="#c89a5b" title="shade 2">
+          <input type="color" id="c3" value="#8a5524" title="shade 3">
+          <input type="color" id="c4" value="#c8451c" title="peak">
+        </div>
+      </div>
+      <button class="mini" id="regen">↻ New random data</button>
+    </div>
+    <p class="hint" style="margin:.7rem 0 0">Shades use <em>fixed absolute</em> thresholds (not per-series quartiles), so a colour means the same activity level on every row. Getting a pleasing spread is all about matching the bands to your data's magnitude — that's this control.</p>
+  </div>
+
+  <!-- multi-series, via the function API -->
+  <div id="multi"></div>
+
+  <div class="panel">
+    <h3>As a web component <span class="hint">— single series, hexagon</span></h3>
+    <p class="hint">Drop in a tag and set <code>.data</code> (or point <code>endpoint</code> at a JSON URL). Same styling; include <code>honeycomb.css</code>.</p>
+    <honeycomb-heatmap id="wc" unit="commit" title="Repo activity" sub="Commits over the last year."></honeycomb-heatmap>
+  </div>
+
+<script type="module">
+  import { honeycomb } from '../src/honeycomb.js';
+  import '../src/honeycomb-element.js';
+
+  const fmt = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+  // ~1 year of daily counts with a lumpy, realistic distribution: many quiet days, a low baseline,
+  // occasional spikes, calmer weekends. `bias` scales a series up/down so rows differ.
+  function genDays(bias = 1) {
+    const days = {};
+    const to = new Date(); to.setHours(0, 0, 0, 0);
+    for (let i = 0; i < 365; i++) {
+      const d = new Date(to); d.setDate(d.getDate() - i);
+      const r = Math.random();
+      let n = 0;
+      if (r > 0.35) n = Math.floor(Math.random() * 12 * bias);        // ordinary days
+      if (r > 0.90) n += Math.floor(Math.random() * 40 * bias);       // spikes
+      if (d.getDay() === 0 || d.getDay() === 6) n = Math.floor(n * 0.4); // quieter weekends
+      if (n > 0) days[fmt(d)] = n;
+    }
+    return days;
+  }
+
+  let seriesData;
+  function build() {
+    seriesData = {
+      series: [
+        { label: 'Beth',       meta: ['/beth', 'America/New_York'], days: genDays(1) },
+        { label: 'Harbor',     meta: ['/harbor', 'America/Chicago'], badge: 'trial', days: genDays(1.4) },
+        { label: 'Cedar Mill', meta: ['/cedar'], days: genDays(0.5) },
+      ],
+    };
+  }
+  build();
+
+  const bands = () => [+b1.value, +b2.value, +b3.value];
+  const $ = (id) => document.getElementById(id);
+
+  function renderMulti() {
+    honeycomb($('multi'), seriesData, {
+      title: 'Team activity',
+      sub: 'Daily events over the last year — every series compared on the same fixed shade bands.',
+      unit: 'event', bands: bands(), showSort: true,
+    });
+  }
+  const wc = $('wc');
+  function renderWC() {
+    wc.setAttribute('bands', bands().join(','));
+    wc.data = { series: [{ days: genDays(1.1) }] };
+  }
+
+  // live palette: set the CSS custom properties on each instance's container
+  function applyPalette() {
+    const map = [['c0', '--hc-l0'], ['c1', '--hc-l1'], ['c2', '--hc-l2'], ['c3', '--hc-l3'], ['c4', '--hc-l4']];
+    for (const el of [$('multi'), wc]) for (const [id, v] of map) el.style.setProperty(v, $(id).value);
+  }
+
+  function renderAll() { renderMulti(); renderWC(); applyPalette(); }
+
+  ['b1', 'b2', 'b3'].forEach((id) => $(id).addEventListener('input', renderAll));
+  ['c0', 'c1', 'c2', 'c3', 'c4'].forEach((id) => $(id).addEventListener('input', applyPalette));
+  $('regen').addEventListener('click', () => { build(); renderAll(); });
+
+  renderAll();
+</script>
+</body>
+</html>

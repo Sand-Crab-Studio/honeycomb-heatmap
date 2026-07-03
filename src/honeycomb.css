@@ -1,0 +1,115 @@
+/* honeycomb-heatmap — MIT © Sand Crab Studio.
+ *
+ * Everything is scoped under `.honeycomb` (the mount container and the <honeycomb-heatmap>
+ * element get that class automatically). Theme it by overriding the CSS custom properties
+ * in the `.honeycomb { ... }` block below — either globally or on a single instance.
+ */
+
+.honeycomb {
+  /* ---- palette: 0 = empty, 1..4 = increasing activity (see README "Tuning the bands & palette") ---- */
+  --hc-l0: #ece4d6;   /* empty  — warm tan       */
+  --hc-l1: #e3cda2;   /* light  — wheat          */
+  --hc-l2: #c89a5b;   /* mid    — amber          */
+  --hc-l3: #8a5524;   /* strong — chestnut       */
+  --hc-l4: #c8451c;   /* peak   — burnt-orange   */
+
+  /* ---- geometry ---- */
+  --hc-cell:  11px;   /* square-view cell size          */
+  --hc-gap:   3px;    /* gap between cells              */
+  --hc-hex-w: 16px;   /* hex cell width  (flat-top hex is wider than tall) */
+  --hc-hex-h: 14px;   /* hex cell height               */
+  --hc-radius: 2px;   /* square-view corner radius      */
+
+  /* ---- chrome ---- */
+  --hc-accent:     #8a5524;   /* active toggle button / brand */
+  --hc-ink:        #2c3e50;   /* headings + labels           */
+  --hc-muted:      #6b7886;   /* stats + sub text            */
+  --hc-faint:      #8a7f6b;   /* legend + toggle labels      */
+  --hc-line:       #e7ebf0;   /* row border                  */
+  --hc-surface:    #ffffff;   /* row background              */
+  --hc-track:      #efe7da;   /* scroll pill track           */
+  --hc-thumb:      #c4b194;   /* scroll pill thumb           */
+  --hc-btn-bg:     #ffffff;
+  --hc-btn-border: #e0d6c6;
+  --hc-btn-ink:    #6b5b46;
+
+  display: block;
+  font: 14px/1.4 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  color: var(--hc-ink);
+}
+honeycomb-heatmap { display: block; }   /* the custom element is inline by default */
+.honeycomb *, .honeycomb *::before, .honeycomb *::after { box-sizing: border-box; }
+
+/* ---- header ---- */
+.honeycomb .hc-head { margin: 0 0 1.2rem; }
+.honeycomb .hc-title { margin: .2rem 0 .35rem; font-size: 1.35rem; color: var(--hc-ink); }
+.honeycomb .hc-sub { margin: 0 0 .8rem; color: var(--hc-muted); font-size: .92rem; max-width: 46rem; line-height: 1.45; }
+
+.honeycomb .hc-bar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .6rem; }
+
+/* ---- legend ---- */
+.honeycomb .hc-legend { display: flex; align-items: center; gap: 4px; color: var(--hc-faint); font-size: .78rem; }
+.honeycomb .hc-legend-label { margin: 0 .3rem; }
+
+/* ---- segmented toggles (View / Sort) ---- */
+.honeycomb .hc-controls { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+.honeycomb .hc-toggle { display: flex; align-items: center; gap: .3rem; }
+.honeycomb .hc-toggle-label { color: var(--hc-faint); font-size: .82rem; margin-right: .15rem; }
+.honeycomb .hc-btn {
+  font: 600 .82rem system-ui; padding: .32rem .72rem; cursor: pointer; border-radius: 7px;
+  border: 1px solid var(--hc-btn-border); background: var(--hc-btn-bg); color: var(--hc-btn-ink);
+}
+.honeycomb .hc-btn:hover { filter: brightness(.97); }
+.honeycomb .hc-btn--on { background: var(--hc-accent); color: #fff; border-color: var(--hc-accent); }
+
+/* ---- one series = one stacked card: label on top, grid full-width, stats underneath ---- */
+.honeycomb .hc-list { display: flex; flex-direction: column; gap: .5rem; }
+.honeycomb .hc-row {
+  display: flex; flex-direction: column; gap: .45rem;
+  background: var(--hc-surface); border: 1px solid var(--hc-line); border-radius: 10px; padding: .75rem .9rem;
+}
+.honeycomb .hc-name { display: flex; align-items: center; gap: .4rem; }
+.honeycomb .hc-label { font-weight: 700; color: var(--hc-ink); }
+.honeycomb .hc-stats { display: flex; flex-wrap: wrap; gap: .15rem .9rem; font-size: .82rem; }
+.honeycomb .hc-stat { color: var(--hc-muted); }
+.honeycomb .hc-badge {
+  font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .03em;
+  padding: .1rem .4rem; border-radius: 6px; background: #eee2cf; color: #8a5a1f;
+}
+
+/* ---- the grid: a pannable viewport; native scrollbar hidden, replaced by the pill below ---- */
+.honeycomb .hc-heatwrap { overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; }
+.honeycomb .hc-heatwrap::-webkit-scrollbar { display: none; }
+.honeycomb .hc-heatwrap.pan { cursor: grab; }
+.honeycomb .hc-heatwrap.dragging { cursor: grabbing; user-select: none; }
+
+.honeycomb .hc-scroll { position: relative; height: 4px; margin: 8px 2px 0; border-radius: 999px; background: var(--hc-track); }
+.honeycomb .hc-scroll-thumb { position: absolute; top: 0; height: 100%; min-width: 22px; border-radius: 999px; background: var(--hc-thumb); }
+
+/* width:max-content keeps the ~53-week rows at natural width (so they pan) instead of squishing to the card */
+.honeycomb .hc-months { display: flex; gap: var(--hc-gap); margin-bottom: 3px; width: max-content; }
+.honeycomb .hc-mlabel { width: var(--hc-cell); flex: 0 0 auto; font-size: 10px; color: #97a3b0; white-space: nowrap; overflow: visible; }
+.honeycomb .hc-heat { display: flex; gap: var(--hc-gap); width: max-content; }
+.honeycomb .hc-week { flex: 0 0 auto; display: flex; flex-direction: column; gap: var(--hc-gap); }
+.honeycomb .hc-cell { width: var(--hc-cell); height: var(--hc-cell); border-radius: var(--hc-radius); }
+.honeycomb .hc-cell.hc-pad { background: transparent; }
+
+.honeycomb .hc-l0 { background: var(--hc-l0); }
+.honeycomb .hc-l1 { background: var(--hc-l1); }
+.honeycomb .hc-l2 { background: var(--hc-l2); }
+.honeycomb .hc-l3 { background: var(--hc-l3); }
+.honeycomb .hc-l4 { background: var(--hc-l4); }
+
+/* ---- hexagon (honeycomb) view: flat-top hexes; alternate columns drop half a hex so they interlock ---- */
+.honeycomb .hc-heat.hc-hex { gap: 0; align-items: flex-start; }
+.honeycomb .hc-heat.hc-hex .hc-week { gap: var(--hc-gap); margin-right: calc(-1 * var(--hc-gap)); }
+.honeycomb .hc-heat.hc-hex .hc-week:nth-child(even) { margin-top: calc((var(--hc-hex-h) + var(--hc-gap)) / 2); }
+.honeycomb .hc-heat.hc-hex .hc-cell {
+  width: var(--hc-hex-w); height: var(--hc-hex-h); border-radius: 0;
+  clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+}
+/* month labels must match the hex column pitch (hex-w − gap overlap), or they drift across the year */
+.honeycomb .hc-heatblock.hc-hex .hc-months { gap: 0; }
+.honeycomb .hc-heatblock.hc-hex .hc-mlabel { width: calc(var(--hc-hex-w) - var(--hc-gap)); }
+
+.honeycomb .hc-empty { color: var(--hc-muted); padding: 1rem 0; font-size: .9rem; }

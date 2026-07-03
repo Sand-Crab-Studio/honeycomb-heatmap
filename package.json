@@ -1,0 +1,48 @@
+{
+  "name": "honeycomb-heatmap",
+  "version": "0.1.0",
+  "description": "Zero-dependency activity/contribution heatmap — hexagon or square, themeable, with an optional <honeycomb-heatmap> web component.",
+  "type": "module",
+  "main": "src/honeycomb.js",
+  "module": "src/honeycomb.js",
+  "exports": {
+    ".": "./src/honeycomb.js",
+    "./element": "./src/honeycomb-element.js",
+    "./css": "./src/honeycomb.css",
+    "./honeycomb.css": "./src/honeycomb.css"
+  },
+  "files": [
+    "src",
+    "demo",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": [
+    "*.css",
+    "./src/honeycomb-element.js"
+  ],
+  "scripts": {
+    "demo": "npx --yes serve ."
+  },
+  "keywords": [
+    "heatmap",
+    "calendar-heatmap",
+    "contribution-graph",
+    "activity-graph",
+    "honeycomb",
+    "hexagon",
+    "web-component",
+    "zero-dependency",
+    "vanilla-js"
+  ],
+  "license": "MIT",
+  "author": "Sand Crab Studio",
+  "homepage": "https://github.com/Sand-Crab-Studio/honeycomb-heatmap#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Sand-Crab-Studio/honeycomb-heatmap.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Sand-Crab-Studio/honeycomb-heatmap/issues"
+  }
+}
