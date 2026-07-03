@@ -8,15 +8,24 @@ A tiny, **zero-dependency** activity / contribution heatmap — GitHub-style, bu
 - Legend, "last active" stats, per-row labels/badges — all optional
 - **Themeable** entirely through CSS custom properties
 
-👉 Open [`demo/index.html`](demo/index.html) for a live, retune-it-yourself example.
+**▶ [Live demo](https://sandcrab.studio/freebies/honeycomb/)** · **[GitHub repo](https://github.com/Sand-Crab-Studio/honeycomb-heatmap)** · or open [`demo/index.html`](demo/index.html) locally to retune it yourself.
 
 ## Install
 
-```bash
-npm i honeycomb-heatmap
+No build, no dependencies — it's two plain ES-module files. Use whichever fits:
+
+**Load from a CDN** — jsDelivr serves the repo directly, nothing to install:
+
+```html
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Sand-Crab-Studio/honeycomb-heatmap/src/honeycomb.css">
+<script type="module">
+  import { honeycomb } from 'https://cdn.jsdelivr.net/gh/Sand-Crab-Studio/honeycomb-heatmap/src/honeycomb.js';
+</script>
 ```
 
-Or drop the two files (`src/honeycomb.js`, `src/honeycomb.css`) onto a page — they're plain ES modules with no dependencies.
+**Or copy the files** — drop `src/honeycomb.js` and `src/honeycomb.css` into your project and import them with a relative path.
+
+> An npm package is planned but not published yet, so the examples below use relative paths — swap in the CDN URLs above if you'd rather not vendor the files.
 
 ## Quick start (function API)
 
@@ -25,7 +34,7 @@ Or drop the two files (`src/honeycomb.js`, `src/honeycomb.css`) onto a page — 
 <div id="chart"></div>
 
 <script type="module">
-  import { honeycomb } from 'honeycomb-heatmap';
+  import { honeycomb } from './honeycomb.js';
 
   honeycomb(document.getElementById('chart'), {
     series: [
@@ -53,7 +62,7 @@ honeycomb(el, { '2026-06-29': 12, '2026-06-28': 4 });   // dates → counts, tha
 <honeycomb-heatmap id="hc" unit="commit" bands="9,24,44" title="Repo activity"></honeycomb-heatmap>
 
 <script type="module">
-  import 'honeycomb-heatmap/element';
+  import './honeycomb-element.js';
   document.getElementById('hc').data = { series: [{ days: { '2026-06-29': 12 } }] };
 </script>
 ```
@@ -173,4 +182,4 @@ Modern evergreen browsers. Uses `clip-path` (hex cells), `ResizeObserver`, and p
 
 ## License
 
-MIT © Sand Crab Studio.
+MIT © [Sand Crab Studio](https://sandcrab.studio).
